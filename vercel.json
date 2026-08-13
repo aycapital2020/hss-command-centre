@@ -27,7 +27,7 @@
       "schedule": "15 */6 * * *"
     },
     {
-      "path": "/api/dunning?key=3e654b50543bfce946c1998bb61a804d",
+      "path": "/api/dunning",
       "schedule": "40 */2 * * *"
     }
   ]

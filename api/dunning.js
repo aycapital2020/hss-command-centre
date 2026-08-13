@@ -197,7 +197,8 @@ async function failedPayments() {
 
 module.exports = async (req, res) => {
   const q = req.query || {};
-  if ((q.key || '') !== process.env.REFRESH_SECRET) {
+  const isCron = Boolean(req.headers['x-vercel-cron']);
+  if (!isCron && (q.key || '') !== process.env.REFRESH_SECRET) {
     return res.status(401).json({ ok: false, error: 'bad_key' });
   }
 
