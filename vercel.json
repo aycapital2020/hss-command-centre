@@ -1,0 +1,34 @@
+{
+  "cleanUrls": true,
+  "functions": {
+    "api/live/refresh.js": {
+      "maxDuration": 60
+    },
+    "api/pnl.js": {
+      "maxDuration": 60
+    },
+    "api/live.js": {
+      "maxDuration": 60
+    },
+    "api/sales.js": {
+      "maxDuration": 60
+    },
+    "api/dunning.js": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/pnl",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/live/refresh",
+      "schedule": "15 */6 * * *"
+    },
+    {
+      "path": "/api/dunning?key=3e654b50543bfce946c1998bb61a804d",
+      "schedule": "40 */2 * * *"
+    }
+  ]
+}

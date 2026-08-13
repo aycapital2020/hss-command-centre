@@ -1,0 +1,11 @@
+{
+  "name": "hss-cfo-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Her Sales Society CFO dashboard — live from the P&L Google Sheet",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "googleapis": "^144.0.0",
+    "nodemailer": "^6.10.1"
+  }
+}
