@@ -320,6 +320,7 @@
     <button role="tab" data-t="members" aria-selected="false">Renewals &amp; members <span class="badge" id="bMembers" hidden></span></button>
     <button role="tab" data-t="chase" aria-selected="false">To chase <span class="badge warn" id="bChase" hidden></span></button>
     <button role="tab" data-t="community" aria-selected="false">Community</button>
+    <button role="tab" data-t="students" aria-selected="false">Students</button>
     <button role="tab" data-t="costs" aria-selected="false">Costs</button>
   </div>
 
@@ -513,6 +514,23 @@
         <div class="scroll"><table class="dt" id="cmNotPaying"></table></div>
       </div>
     </section>
+  </div>
+
+  <div class="tabpanel" id="tab-students" hidden>
+    <section>
+      <p class="sec-label">Student practice leaderboard <span class="sec-note" id="stSrc">Sales Coach app</span></p>
+    </section>
+    <section class="cols">
+      <div class="panel">
+        <div class="ph"><h3>Setters</h3><span class="hint">DM + booking practice</span></div>
+        <div class="scroll"><table class="dt" id="stSetters"></table></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>Closers</h3><span class="hint">sales call practice</span></div>
+        <div class="scroll"><table class="dt" id="stClosers"></table></div>
+      </div>
+    </section>
+    <div class="note" id="stNote"></div>
   </div>
 
   <div class="tabpanel" id="tab-costs" hidden>
@@ -1303,10 +1321,11 @@ function renderTabs(){ renderRevenue();renderMembers();renderChase();renderCommu
 function showTab(t){
   curTab=t;
   [...document.querySelectorAll("#tabs button")].forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===t)));
-  ["overview","revenue","sales","team","members","chase","community","costs"].forEach(x=>{
+  ["overview","revenue","sales","team","members","chase","community","students","costs"].forEach(x=>{
     const el=document.getElementById("tab-"+x); if(el) el.hidden = (x!==t);
   });
   if(t==="costs"){ renderCost(curCostView); renderQ(); renderExpenses(); }
+  if(t==="students") loadStudents();
 }
 ["rFrom","rTo"].forEach(id=>{
   const el=document.getElementById(id);
@@ -1327,7 +1346,45 @@ document.getElementById("tabs").addEventListener("click",e=>{
   const b=e.target.closest("button[data-t]"); if(b) showTab(b.dataset.t);
 });
 
+/* ---------- Students tab: practice leaderboard from the Sales Coach app ---------- */
+let STUDENTS=null, stLoading=false;
+function stScore(v){ return v==null ? "\u2014" : String(v); }
+function stRows(list){
+  return (list||[]).map((r,i)=>"<tr>"
+    +'<td class="num">'+(i+1)+"</td>"
+    +'<td class="who">'+esc(r.name)+"</td>"
+    +'<td class="num">'+r.sessions+"</td>"
+    +'<td class="num">'+stScore(r.avgScore)+"</td>"
+    +'<td class="num">'+stScore(r.bestScore)+"</td>"
+    +"<td>"+dshort(r.lastPracticedAt)+"</td>"
+    +"<td>"+esc((r.badges||[]).join("  "))+"</td>"
+    +"</tr>");
+}
+function renderStudents(){
+  const head=[{t:"#",num:1},{t:"Student"},{t:"Sessions",num:1},{t:"Avg score",num:1},{t:"Best",num:1},{t:"Last practiced"},{t:"Badges"}];
+  const d=STUDENTS;
+  const note=document.getElementById("stNote");
+  if(!d||!d.ok){
+    table("stSetters",head,[], d&&d.error?"Could not load: "+d.error:"Loading\u2026");
+    table("stClosers",head,[], d&&d.error?"Could not load: "+d.error:"Loading\u2026");
+    if(note) note.textContent="";
+    return;
+  }
+  table("stSetters",head,stRows(d.setter),"No setter practice sessions yet.");
+  table("stClosers",head,stRows(d.closer),"No closer practice sessions yet.");
+  if(note) note.textContent="Scores come from completed practice sessions in the Student Sales Coach app. Students without a score yet are ranked by session count.";
+}
+function loadStudents(){
+  if(STUDENTS||stLoading) { renderStudents(); return; }
+  stLoading=true; renderStudents();
+  fetch("/api/students",{cache:"no-store"}).then(r=>r.json())
+    .then(d=>{STUDENTS=d;renderStudents();})
+    .catch(e=>{STUDENTS={ok:false,error:String(e&&e.message||e)};renderStudents();})
+    .finally(()=>{stLoading=false;});
+}
+
 /* ---------- Right-now strip: live from Whop + Wise (api/live) ---------- */
+
 function liveTile(lab,val,sub,badge){
   return '<div class="card mini"><div class="lab">'+lab+(badge?' <span class="conn'+(badge.stale?' snap':'')+'">'+badge.text+'</span>':'')
     +'</div><div class="val tnum">'+val+'</div><div class="sub">'+(sub||'')+'</div></div>';
